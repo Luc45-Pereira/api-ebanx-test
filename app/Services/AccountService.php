@@ -16,7 +16,7 @@ class AccountService
         if (Cache::has($this->cacheKey)) {
             $this->accounts = Cache::get($this->cacheKey);
         } else {
-            $this->accounts = [];
+            $this->accounts = [300 => ['id' => 300, 'balance' => 0]];
         }
     }
 
@@ -36,9 +36,9 @@ class AccountService
 
     public function reset()
     {
-        $this->accounts = [];
+        $this->accounts = [300 => ['id' => "300", 'balance' => 0]];
         Cache::put($this->cacheKey, $this->accounts, 3600);
-        return ['status' => 'OK'];
+        return 'OK';
     }
 
     public function getBalance($account_id)
@@ -61,7 +61,7 @@ class AccountService
 
     public function transfer($origin, $destination, $amount)
     {
-        if (isset($this->accounts[$origin]) && isset($this->accounts[$destination])) {
+        if (isset($this->accounts[$origin])) {
             $this->accounts[$origin]['balance'] -= $amount;
             $this->accounts[$destination]['balance'] += $amount;
 

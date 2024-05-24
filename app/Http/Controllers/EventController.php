@@ -28,17 +28,17 @@ class EventController extends Controller
             $result = $this->accountService->transfer($origin, $destination, $amount);
 
             if ($result) {
-                return response()->json($result, 200);
+                return response()->json($result, 201);
             } else {
-                return response()->json(['error' => 'Account not found'], 404);
+                return response()->json(0, 404);
             }
         } elseif ($type === 'withdraw') {
             $account = $this->accountService->withdraw($origin, $amount);
 
             if ($account) {
-                return response()->json(['origin' => $account], 200);
+                return response()->json(['origin' => $account], 201);
             } else {
-                return response()->json(['error' => 'Account not found'], 404);
+                return response()->json(0, 404);
             }
         } else {
             return response()->json(['error' => 'Invalid event type'], 400);

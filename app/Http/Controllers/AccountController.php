@@ -16,7 +16,9 @@ class AccountController extends Controller
 
     public function reset()
     {
-        return response()->json($this->accountService->reset(), 200);
+        $this->accountService->reset();
+        return response('OK', 200);
+
     }
 
     public function balance(Request $request)
@@ -25,9 +27,9 @@ class AccountController extends Controller
         $balance = $this->accountService->getBalance($account_id);
 
         if ($balance !== null) {
-            return response()->json(['balance' => $balance], 200);
+            return response()->json($balance, 200);
         } else {
-            return response()->json(['error' => 'Account not found'], 404);
+            return response()->json(0, 404);
         }
     }
 }
