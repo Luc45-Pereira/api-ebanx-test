@@ -2,12 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Traits\AccountsTrait;
 use Illuminate\Http\Request;
+use App\Services\AccountService;
 
 class EventController extends Controller
 {
-    use AccountsTrait;
+    private $accountService;
+
+    public function __construct()
+    {
+        $this->accountService = AccountService::getInstance();
+    }
+
     public function handleEvent(Request $request)
     {
         $type = $request->input('type');
@@ -16,30 +22,21 @@ class EventController extends Controller
         $origin = $request->input('origin');
 
         if ($type === 'deposit') {
-            if (isset($this->accounts[$destination])) {
-                $this->accounts[$destination]['balance'] += $amount;
-            } else {
-                $this->accounts[$destination] = ['id' => $destination, 'balance' => $amount];
-            }
-
-            return response()->json(['destination' => ['id' => $destination, 'balance' => $this->accounts[$destination]['balance']]], 201);
+            $account = $this->accountService->deposit($destination, $amount);
+            return response()->json(['destination' => $account], 201);
         } elseif ($type === 'transfer') {
-            if (isset($this->accounts[$origin]) && isset($this->accounts[$destination])) {
-                $this->accounts[$origin]['balance'] -= $amount;
-                $this->accounts[$destination]['balance'] += $amount;
+            $result = $this->accountService->transfer($origin, $destination, $amount);
 
-                return response()->json([
-                    'origin' => ['id' => $origin, 'balance' => $this->accounts[$origin]['balance']],
-                    'destination' => ['id' => $destination, 'balance' => $this->accounts[$destination]['balance']]
-                ], 200);
+            if ($result) {
+                return response()->json($result, 200);
             } else {
                 return response()->json(['error' => 'Account not found'], 404);
             }
         } elseif ($type === 'withdraw') {
-            if (isset($this->accounts[$origin])) {
-                $this->accounts[$origin]['balance'] -= $amount;
+            $account = $this->accountService->withdraw($origin, $amount);
 
-                return response()->json(['origin' => ['id' => $origin, 'balance' => $this->accounts[$origin]['balance']]], 200);
+            if ($account) {
+                return response()->json(['origin' => $account], 200);
             } else {
                 return response()->json(['error' => 'Account not found'], 404);
             }

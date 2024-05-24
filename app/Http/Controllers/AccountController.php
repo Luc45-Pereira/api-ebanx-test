@@ -2,26 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Traits\AccountsTrait;
 use Illuminate\Http\Request;
+use App\Services\AccountService;
 
 class AccountController extends Controller
 {
-    use AccountsTrait;
+    private $accountService;
+
+    public function __construct()
+    {
+        $this->accountService = AccountService::getInstance();
+    }
 
     public function reset()
     {
-        $this->accounts = [];
-        session(['accounts' => $this->accounts]);
-        return response()->json(['status' => 'OK'], 200);
+        return response()->json($this->accountService->reset(), 200);
     }
 
     public function balance(Request $request)
     {
         $account_id = $request->query('account_id');
+        $balance = $this->accountService->getBalance($account_id);
 
-        if (isset($this->accounts[$account_id])) {
-            return response()->json(['balance' => $this->accounts[$account_id]['balance']], 200);
+        if ($balance !== null) {
+            return response()->json(['balance' => $balance], 200);
         } else {
             return response()->json(['error' => 'Account not found'], 404);
         }
