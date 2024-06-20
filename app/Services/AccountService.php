@@ -11,6 +11,8 @@ class AccountService
 
     private $accounts;
 
+    const LIMIT = -200;
+
     private function __construct()
     {
         if (Cache::has($this->cacheKey)) {
@@ -61,7 +63,7 @@ class AccountService
 
     public function transfer($origin, $destination, $amount)
     {
-        if (isset($this->accounts[$origin])) {
+        if (isset($this->accounts[$origin]) && $this->verifyLimit($origin, $amount)) {
             $this->accounts[$origin]['balance'] -= $amount;
             $this->accounts[$destination]['balance'] += $amount;
 
@@ -78,7 +80,7 @@ class AccountService
 
     public function withdraw($account_id, $amount)
     {
-        if (isset($this->accounts[$account_id])) {
+        if (isset($this->accounts[$account_id]) && $this->verifyLimit($account_id, $amount)) {
             $this->accounts[$account_id]['balance'] -= $amount;
 
             Cache::put($this->cacheKey, $this->accounts, 3600); // Atualizar cache
@@ -88,4 +90,10 @@ class AccountService
 
         return null;
     }
+
+    public function verifyLimit($account_id, $amount)
+    {
+        return ($this->accounts[$account_id]['balance'] - $amount) > self::LIMIT;
+    }
+
 }
